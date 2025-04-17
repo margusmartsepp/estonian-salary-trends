@@ -129,8 +129,8 @@ class OpenAIClient:
             self.logger.error(f"Error generating career recommendations: {str(e)}")
             return "Sorry, I couldn't generate recommendations at this time. Please try again later."
     
-    def answer_salary_question(self, 
-                             question: str, 
+    def answer_salary_question(self,
+                             question: str,
                              salary_data: Optional[Dict[str, Any]] = None) -> str:
         """
         Answer a specific question about salary trends using the OpenAI API.
@@ -163,6 +163,42 @@ class OpenAIClient:
         except Exception as e:
             self.logger.error(f"Error answering salary question: {str(e)}")
             return "Sorry, I couldn't answer your question at this time. Please try again later."
+    
+    def stream_salary_question(self,
+                              question: str,
+                              salary_data: Optional[Dict[str, Any]] = None):
+        """
+        Stream the answer to a specific question about salary trends using the OpenAI API.
+        
+        Args:
+            question: The user's question
+            salary_data: Optional dictionary containing relevant salary data
+            
+        Returns:
+            A streaming response from the OpenAI API
+        """
+        try:
+            # Prepare the prompt with context
+            prompt = self._create_question_prompt(question, salary_data)
+            
+            # Call the OpenAI API with streaming enabled
+            stream = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert economist specializing in Estonian salary trends and labor markets. Provide clear, accurate answers to questions about salaries in Estonia."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=800,
+                temperature=0.7,
+                stream=True
+            )
+            
+            # Return the streaming response
+            return stream
+            
+        except Exception as e:
+            self.logger.error(f"Error streaming salary question answer: {str(e)}")
+            raise
     
     def _create_trend_analysis_prompt(self, 
                                     salary_data: Dict[str, Any], 
